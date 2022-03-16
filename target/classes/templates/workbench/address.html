@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-container style="height: 500px; border: 1px solid #eee">
+
+        <el-main>
+            <h1 align="center">测试定位信息</h1>
+            <el-row>
+                <el-button align="center" round @click="browser" type="primary" :loading="lad">获取位置信息
+                </el-button>
+                <el-button align="center" round @click="queryTableData" type="primary" :loading="lad">重新获取数据
+                </el-button>
+            </el-row>
+            <br/>
+
+            <template>
+                <el-table :data="tableData"
+                          style="width: 100%">
+                    <el-table-column type="expand">
+                        <template slot-scope="props">
+                            <el-form label-position="left" inline class="demo-table-expand">
+                                <el-form-item label="ID">
+                                    <span>{{ props.row.id }}</span>
+                                </el-form-item>
+                                <el-form-item label="IP">
+                                    <span>{{ props.row.ip }}</span>
+                                </el-form-item>
+                                <el-form-item label="创建时间">
+                                    <span>{{ props.row.createTime }}</span>
+                                </el-form-item>
+                                <el-form-item label="经度">
+                                    <span>{{ props.row.lat }}</span>
+                                </el-form-item>
+                                <el-form-item label="维度">
+                                    <span>{{ props.row.lon }}</span>
+                                </el-form-item>
+                                <el-form-item label="修改时间">
+                                    <span>{{ props.row.updateTime }}</span>
+                                </el-form-item>
+                                <el-form-item label="附近地置">
+                                    <span>{{ props.row.poilist }}</span>
+                                </el-form-item>
+                            </el-form>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                            label="ID"
+                            prop="id">
+                    </el-table-column>
+                    <el-table-column
+                            label="IP"
+                            prop="ip">
+                    </el-table-column>
+                    <el-table-column
+                            label="经度"
+                            prop="lat">
+                    </el-table-column>
+                    <el-table-column
+                            label="维度"
+                            prop="lon">
+                    </el-table-column>
+                    <el-table-column
+                            label="地址"
+                            prop="addre">
+                    </el-table-column>
+                    <el-table-column
+                            fixed="right"
+                            label="操作"
+                            width="100">
+                        <template slot-scope="scope">
+                            <el-button @click="deleteAddress(scope.row)" type="text" size="small">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </template>
+        </el-main>
+    </el-container>
+    </el-container>
+    <br/>
+
+</div>
+<style>
+    .el-header {
+        background-color: #B3C0D1;
+        color: #333;
+        line-height: 60px;
+    }
+
+    .el-aside {
+        color: #333;
+    }
+
+    .demo-table-expand {
+        font-size: 0;
+    }
+
+    .demo-table-expand label {
+        width: 90px;
+        color: #99a9bf;
+    }
+
+    .demo-table-expand .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+        width: 50%;
+    }
+</style>
+</body>
+<!-- cdn方式引入Element-UI组件库 -->
+<script src="https://unpkg.com/element-ui@2.15.3/lib/index.js"></script>
+<!-- cdn方式引入axios-->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+<script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
+<script src="https://apis.map.qq.com/tools/geolocation/min?key=RXYBZ-UJ4KX-AQC44-7JK2M-PPN6O-IABTX&referer=jsapi"></script>
+<script>
+    const timer = ms => new Promise(resolve => setTimeout(resolve, ms))
+    var Vue = new Vue({
+        el: '#app',
+        data: {
+            lad: false,
+            ip: null,
+            tableData: []
+        },
+        methods: {
+            async deleteAddress(row) {
+                await axios.delete("http://localhost:8080/address/delete/" + row.id)
+                    .then(res => {
+                        console.log(res);
+                        if (!res.data.status) {
+                            alert(res.data.desc)
+                        }
+                    }).catch(err => {
+                        alert(err);
+                    });
+                await timer(1000);
+                Vue.queryTableData();
+            },
+
+            browser() {
+                this.lad = true;
+                this.ip = returnCitySN["cip"];
+                new qq.maps.Geolocation("RXYBZ-UJ4KX-AQC44-7JK2M-PPN6O-IABTX", "jsapi").getLocation(
+                    async function (position) {
+                        let addre = JSON.stringify(position, null, 4);
+                        await axios.post(
+                            "http://localhost:8080/address/insert",
+                            {
+                                addre: addre,
+                                ip: Vue.ip
+                            }
+                        ).then(function (response) {
+
+                            console.log(response);
+                        }).catch(function (error) {
+                            alert(error);
+                        });
+                        Vue.lad = false;
+                        await timer(1000);
+                        Vue.queryTableData();
+                    },
+                    function () {
+                        alert("获取地理位置信息失败")
+                        Vue.lad = false;
+                    }, {
+                        timeout: 1000,            //获取位置允许的最长时间
+                        failTipFlag: true          //是否在定位失败时给出提示引导用户打开授权或打开定位开关。
+                    })
+
+            },
+            queryTableData() {
+                axios.get("http://localhost:8080/address/query")
+                    .then(function (response) {
+                        console.log(this.tableData)
+                        if (response.data.status) {
+                            Vue.tableData = response.data.data;
+                        } else {
+                            alert(response.data.desc);
+                        }
+                        console.log(this.tableData)
+                    }).catch(function (error) {
+                    alert(error);
+                });
+            }
+        },
+        created() {
+            this.queryTableData();
+        }
+    })
+
+</script>
+</html>

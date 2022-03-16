@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>任务列表</title>
+    <script src="/js/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <!-- Form -->
+    <el-button type="text" @click="dialogFormVisible = true">添加任务</el-button>
+    <template>
+        <el-table
+                :data="tableData"
+                style="width: 100%">
+            <el-table-column
+                    prop="createTime"
+                    label="创建时间"
+                    width="180">
+            </el-table-column>
+            <el-table-column
+                    prop="completionTime"
+                    label="完成时间"
+                    width="180">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="任务名称(概述)"
+                    width="180">
+            </el-table-column>
+            <el-table-column
+                    prop="taskDesc"
+                    label="详细描述">
+            </el-table-column>
+            <el-table-column
+                    prop="estimateCompletionTime"
+                    label="预计完成时间">
+            </el-table-column>
+            <el-table-column
+                    prop="timeout"
+                    label="超时时间">
+            </el-table-column>
+            <el-table-column
+                    prop="taskStatus"
+                    label="任务状态">
+            </el-table-column>
+            <el-table-column
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button type="success" @click="complete(scope.row)" plain>完成</el-button>
+                    <el-button type="primary" icon="el-icon-edit" circle></el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                layout="prev, pager, next"
+                :page-size="pageSize"
+                @current-change="pageChange"
+                :total="total">
+        </el-pagination>
+    </template>
+
+
+    <el-dialog title="收货地址" :visible.sync="dialogFormVisible">
+        <el-form :model="form">
+            <el-form-item label="任务名称" :label-width="formLabelWidth">
+                <el-input v-model="form.name" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="任务描述" :label-width="formLabelWidth">
+                <el-input
+                        type="textarea"
+                        :autosize="{ minRows: 2, maxRows: 4}"
+                        placeholder="请输入内容"
+                        v-model="form.taskDesc">
+                </el-input>
+            </el-form-item>
+            <el-form-item label="预计完成时间" :label-width="formLabelWidth">
+                <div class="block">
+                    <el-date-picker
+                            v-model="form.estimateCompletionTime"
+                            type="datetime"
+                            value-format="yyyy-MM-dd HH:mm:ss"
+                            format="yyyy-MM-dd HH:mm:ss"
+                            placeholder="选择日期时间">
+                    </el-date-picker>
+                </div>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="submitForm">确 定</el-button>
+        </div>
+    </el-dialog>
+
+</div>
+</body>
+<script>
+    const vue = new Vue({
+        el: "#app",
+        data: {
+            currentPage: 1,
+            pageSize: 10,
+            total: 0,
+            tableData: [],
+            dialogTableVisible: false,
+            dialogFormVisible: false,
+            formLabelWidth: '120px',
+            form: {
+                name: '',
+                estimateCompletionTime: '',
+                taskDesc: ''
+            },
+        },
+        methods: {
+            submitForm() {
+                axios.post("/task/add",
+                    this.form).then((res) => {
+                });
+                this.dialogFormVisible = false;
+                this.getData();
+            },
+            complete(row) {
+                axios.post("/task/ups/" + row.id).then((res) => {
+                });
+                this.getData();
+            },
+            getData() {
+                axios.post("/task/get", {
+                        pageSize: this.pageSize,
+                        currentPage: this.currentPage
+                    }
+                ).then((res) => {
+                    this.tableData = res.data.data;
+                    this.total = res.data.total;
+                    this.pageSize = res.data.pageSize;
+                })
+            },
+            del(row) {
+                axios.post("/task/del/" + row.id).then((res) => {
+                });
+            },
+            pageChange(val) {
+                this.currentPage = val;
+                this.getData();
+            }
+        },
+        created() {
+            this.getData();
+        }
+    });
+</script>
+</html>
