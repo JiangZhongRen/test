@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>pachong</title>
+    <script src="/js/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-form :model="form">
+        <el-form-item label="url" :label-width="formLabelWidth">
+            <el-input v-model="form.url" placeholder="请输入url" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="参数" :label-width="formLabelWidth">
+            <el-input
+                    type="textarea"
+                    :autosize="{ minRows: 2, maxRows: 4}"
+                    placeholder="请输入参数"
+                    v-model="form.param">
+            </el-input>
+        </el-form-item>
+        <el-form-item label="描述" :label-width="formLabelWidth">
+            <div class="block">
+                <el-input
+                        type="textarea"
+                        :autosize="{ minRows: 2, maxRows: 4}"
+                        placeholder="请输入描述"
+                        v-model="form.desc">
+                </el-input>
+            </div>
+        </el-form-item>
+    </el-form>
+    <div slot="footer" class="dialog-footer">
+        <el-button @click="reset">重 置</el-button>
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+    </div>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            formsyn: true,
+            form: {
+                url: '',
+                param: '',
+                desc: ''
+            },
+            formLabelWidth: '120px'
+        },
+        methods: {
+            reset() {
+                this.form = {
+                    url: '',
+                    param: '',
+                    desc: ''
+                }
+            },
+            submitForm() {
+                axios.post("/pachong/add",
+                    this.form).then((res) => {
+                    if (res.data.status) {
+                        alert("成功！！！！");
+                    }
+                });
+            }
+        }
+    })
+</script>
+</html>

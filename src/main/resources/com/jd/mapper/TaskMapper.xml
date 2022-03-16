@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jd.mapper.TaskMapper">
+    <insert id="insert">
+        insert into task(name, create_time, task_desc, estimate_completion_time, task_status)
+        values (#{name}, #{createTime}, #{taskDesc}, #{estimateCompletionTime}, #{taskStatus});
+    </insert>
+    <update id="updateStatus">
+        update task
+        set task_status     = #{taskStatus},
+            completion_time = #{completionTime}
+        where id = #{id};
+    </update>
+
+
+    <select id="getData" resultType="com.jd.service.entity.TaskEntity">
+        select id,
+        name,
+        create_time createTime,
+        completion_time completionTime,
+        task_desc taskDesc,
+        estimate_completion_time estimateCompletionTime,
+        task_status taskStatus
+        from task
+        where 1=1
+        <if test="id != null">and id = #{id}</if>
+        order by completionTime desc
+    </select>
+
+    <delete id="delete">
+        delete
+        from task
+        where id = #{id};
+    </delete>
+</mapper>
